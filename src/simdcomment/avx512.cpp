@@ -72,6 +72,7 @@ void simdc_remove_comments_avx512_vbmi2(const char* input, size_t len, char* out
         uint64_t mquote = _mm512_cmpeq_epi8_mask(vin, vquote);
 
         mquote |= mquotecarry;
+        mquote = prefix_xor_u64(mquote);
         
         // Perform segmented scan on scalar elements
         // A SIMD implementation is possible, but would have to deal with
