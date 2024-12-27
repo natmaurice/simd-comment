@@ -112,7 +112,7 @@ void simdc_remove_comments_avx512_vbmi2(const char* input, size_t len, char* out
         uint64_t mquote = _mm512_cmpeq_epi8_mask(vin, vquote);
 
         mquotecarry &= (~meol);
-        mquote |= mquotecarry;
+        mquote ^= mquotecarry;
         mquote = segscan_xor_u64(mquote, meol);
         
         // Perform segmented scan on scalar elements
@@ -148,7 +148,7 @@ void simdc_remove_comments_avx512_vbmi2(const char* input, size_t len, char* out
     uint64_t mquote = _mm512_cmpeq_epi8_mask(vin, vquote);
 
     mquotecarry &= (~meol);
-    mquote |= mquotecarry;
+    mquote ^= mquotecarry;
     mquote = segscan_xor_u64(mquote, meol);
     
     // Perform segmented scan on scalar elements
