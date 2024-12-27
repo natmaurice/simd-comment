@@ -57,13 +57,14 @@ void test_simdcomment_compare(SIMDCommentFun fun_ref, SIMDCommentFun fun) {
 
     size_t tries = 1000;
 
-    constexpr size_t LEN = 1000;
+    constexpr size_t LEN = 100000;
 
     std::uniform_int_distribution<> distr(100); // 1% chance of eol & 1% chance of '#'
     
     constexpr uint8_t KEY_COMMENT = 0;
     constexpr uint8_t KEY_NEWLINE = 1;
-
+    constexpr uint8_t KEY_QUOTE = 2;
+    
     char input[LEN + 1];
     char output_ref[LEN + 1];
     char output_res[LEN + 1];
@@ -75,12 +76,23 @@ void test_simdcomment_compare(SIMDCommentFun fun_ref, SIMDCommentFun fun) {
 
         for (size_t j = 0; j < LEN; j++) {
             uint8_t val = distr(mt);
-            uint8_t c = 'a';
-            if (val == KEY_COMMENT) { // 
+            uint8_t c;
+            
+            switch (val) {
+            case KEY_COMMENT:
                 c = '#';
-            } else if (val == KEY_NEWLINE) {
+                break;
+            case KEY_NEWLINE:
                 c = '\n';
+                break;
+            case KEY_QUOTE:
+                c = '"';
+                break;
+            default:
+                c = 'a';
+                break;
             }
+            
             input[i] = c;
         }
         
