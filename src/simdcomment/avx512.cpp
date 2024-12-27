@@ -111,6 +111,7 @@ void simdc_remove_comments_avx512_vbmi2(const char* input, size_t len, char* out
         uint64_t meol = _mm512_cmpeq_epi8_mask(vin, veol);
         uint64_t mquote = _mm512_cmpeq_epi8_mask(vin, vquote);
 
+        mquote &= (~meol);
         mquote |= mquotecarry;
         mquote = segscan_xor_u64(mquote, meol);
         
@@ -146,6 +147,7 @@ void simdc_remove_comments_avx512_vbmi2(const char* input, size_t len, char* out
     uint64_t meol = _mm512_cmpeq_epi8_mask(vin, veol);
     uint64_t mquote = _mm512_cmpeq_epi8_mask(vin, vquote);
 
+    mquote &= (~meol);
     mquote |= mquotecarry;
     mquote = segscan_xor_u64(mquote, meol);
     
