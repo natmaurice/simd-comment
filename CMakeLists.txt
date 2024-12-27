@@ -59,7 +59,8 @@ export(TARGETS simdcomment-slib NAMESPACE simdcomment:: FILE "${lib_dir}/cmake/s
 
 
 if (SIMDCOMMENT_ENABLE_AVX512)
-    target_compile_definitions(${libname} PUBLIC SIMDCOMMENT_ENABLE_AVX512)
+    target_compile_definitions(simdcomment-obj PUBLIC SIMDCOMMENT_ENABLE_AVX512)
+    target_compile_definitions(simdcomment-slib PUBLIC SIMDCOMMENT_ENABLE_AVX512)
 endif()
 
 if (SIMDCOMMENT_ENABLE_TESTS)
