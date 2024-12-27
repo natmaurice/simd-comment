@@ -10,6 +10,46 @@ uint64_t prefix_xor_u64(uint64_t v) {
     return v;
 }
 
+uint64_t segscan_xor_u64(uint64_t v, uint64_t mreset) {
+
+    uint64_t v0, v1;
+    uint64_t m0;
+    
+    // Step 1
+    v0 = (v << 1) ^ v;
+    v1 = (v0 & (~mreset)) | (v & mreset);
+
+    m0 = (mreset << 1) | mreset;
+    
+    // Step 2
+    v0 = (v1 << 2) ^ v1;
+    v1 = (v0 & (~m0)) | (v1 & m0);
+    m0 = (m0 << 2) | m0;
+
+    // Step 3
+    v0 = (v1 << 4) ^ v1;
+    v1 = (v0 & (~m0)) | (v1 & m0);
+    m0 = (m0 << 4) | m0;
+
+    // Step 4
+    v0 = (v1 << 8) ^ v1;
+    v1 = (v0 & (~m0)) | (v1 & m0);
+    m0 = (m0 << 8) | m0;
+
+    // Step 5
+    v0 = (v1 << 16) ^ v1;
+    v1 = (v0 & (~m0)) | (v1 & m0);
+    m0 = (m0 << 16) | m0;
+
+    // Step 6
+    v0 = (v1 << 32) ^ v1;
+    v1 = (v0 & (~m0)) | (v1 & m0);
+
+    return v1;
+    
+    
+}
+
 uint64_t segscan_or_u64(uint64_t v, uint64_t mreset) {
 
     uint64_t v0, v1;
@@ -72,7 +112,7 @@ void simdc_remove_comments_avx512_vbmi2(const char* input, size_t len, char* out
         uint64_t mquote = _mm512_cmpeq_epi8_mask(vin, vquote);
 
         mquote |= mquotecarry;
-        mquote = prefix_xor_u64(mquote);
+        mquote = segscan_xor_u64(mquote, meol);
         
         // Perform segmented scan on scalar elements
         // A SIMD implementation is possible, but would have to deal with
@@ -107,7 +147,7 @@ void simdc_remove_comments_avx512_vbmi2(const char* input, size_t len, char* out
     uint64_t mquote = _mm512_cmpeq_epi8_mask(vin, vquote);
 
     mquote |= mquotecarry;
-    mquote = prefix_xor_u64(mquote);
+    mquote = segscan_xor_u64(mquote, meol);
     
     // Perform segmented scan on scalar elements
     // A SIMD implementation is possible, but would have to deal with
