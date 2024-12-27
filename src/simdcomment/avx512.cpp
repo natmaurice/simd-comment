@@ -78,8 +78,8 @@ void simdc_remove_comments_avx512_vbmi2(const char* input, size_t len, char* out
         // A SIMD implementation is possible, but would have to deal with
         // inter-lane operation and port 5
         mcarry &= (~meol); // mask carry if first bit is eol 
-        mcomment |= mcarry;
         mcomment &= (~mquote); // don't include comment if quoted
+        mcomment |= mcarry;
         
         mcomment = segscan_or_u64(mcomment, meol);
         
@@ -113,8 +113,8 @@ void simdc_remove_comments_avx512_vbmi2(const char* input, size_t len, char* out
     // A SIMD implementation is possible, but would have to deal with
     // inter-lane operation and port 5
     mcarry &= (~meol); // mask carry if first bit is eol 
-    mcomment |= mcarry;
     mcomment &= (~mquote);
+    mcomment |= mcarry;
     mcomment = segscan_or_u64(mcomment, meol);
     
     // Compress store
