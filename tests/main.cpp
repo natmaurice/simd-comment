@@ -1,4 +1,5 @@
 #include <functional>
+#include <random>
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch_all.hpp>
 
@@ -37,7 +38,7 @@ void test_simdcomment_fn(SIMDCommentFun fun) {
         size_t len = strlen(input);
         size_t expected_len = strlen(expected_output);
 
-        char* output = new char[expected_len + 1];
+        char* output = new char[len + 1];
         
         size_t olen;
 
@@ -52,12 +53,62 @@ void test_simdcomment_fn(SIMDCommentFun fun) {
     
 }
 
-TEST_CASE("Test - SIMD Comment - Scalar") {
-    test_simdcomment_fn(simdc_remove_comments);
+void test_simdcomment_compare(SIMDCommentFun fun_ref, SIMDCommentFun fun) {
 
-#ifdef SIMDCOMMENT_ENABLE_AVX512
-    test_simdcomment_fn(simdc_remove_comments_avx512_vbmi2);
-#endif // SIMDCOMMENT_ENABLE_AVX512
+    size_t tries = 1000;
+
+    constexpr size_t LEN = 1000;
+
+    std::uniform_int_distribution<> distr(100); // 1% chance of eol & 1% chance of '#'
+    
+    constexpr uint8_t KEY_COMMENT = 0;
+    constexpr uint8_t KEY_NEWLINE = 1;
+
+    char input[LEN + 1];
+    char output_ref[LEN + 1];
+    char output_res[LEN + 1];
+
+    input[LEN] = '\0';
+    
+    for (size_t i = 0; i < tries; i++) {
+        std::mt19937 mt(i);
+
+        for (size_t j = 0; j < LEN; j++) {
+            uint8_t val = distr(mt);
+            uint8_t c = 'a';
+            if (val == KEY_COMMENT) { // 
+                c = '#';
+            } else if (val == KEY_NEWLINE) {
+                c = '\n';
+            }
+            input[i] = c;
+        }
+        
+        size_t len_ref;
+        size_t len_res;
+        
+        fun_ref(input, LEN, output_ref, len_ref);
+        fun(input, LEN, output_res, len_res);
+
+        output_ref[len_ref] = '\0';
+        output_res[len_res] = '\0';
+        
+        REQUIRE(len_res == len_ref);
+        REQUIRE(std::string(output_res) == std::string(output_ref));
+    }
+    
 }
+
+TEST_CASE("SIMD Comment - Scalar") {
+    test_simdcomment_fn(simdc_remove_comments);
+}
+
+#ifdef __AVX512F__ 
+TEST_CASE("SIMD Comment - AVX512") {
+    test_simdcomment_fn(simdc_remove_comments_avx512_vbmi2);
+
+    test_simdcomment_compare(simdc_remove_comments, simdc_remove_comments_avx512_vbmi2);
+}
+#endif // __AVX512F__
 
 

@@ -50,10 +50,11 @@ void simdc_remove_comments_avx512_vbmi2(const char* input, size_t len, char* out
     __m512i veol = _mm512_set1_epi8('\n');
 
     uint64_t mcarry = 0;
+    olen = 0;
     
     // Main loop
     size_t i = 0;
-    for (size_t i = 0; i + CARD_SIMD < len; i++) {
+    for (i = 0; i + CARD_SIMD < len; i += 64) {
         
         __m512i vin = _mm512_loadu_si512(input + i);
 
@@ -63,6 +64,7 @@ void simdc_remove_comments_avx512_vbmi2(const char* input, size_t len, char* out
         // Perform segmented scan on scalar elements
         // A SIMD implementation is possible, but would have to deal with
         // inter-lane operation and port 5
+        mcarry &= (~meol); // mask carry if first bit is eol 
         mcomment |= mcarry;
         mcomment = segscan_or_u64(mcomment, meol);
         
@@ -74,7 +76,6 @@ void simdc_remove_comments_avx512_vbmi2(const char* input, size_t len, char* out
         _mm512_storeu_epi8(output + olen, vuncomment);
 
         olen += __builtin_popcountl(~mcomment);
-        
         
         // Register rotation
         mcarry = mcomment >> 63;
@@ -91,6 +92,7 @@ void simdc_remove_comments_avx512_vbmi2(const char* input, size_t len, char* out
     // Perform segmented scan on scalar elements
     // A SIMD implementation is possible, but would have to deal with
     // inter-lane operation and port 5
+    mcarry &= (~meol); // mask carry if first bit is eol 
     mcomment |= mcarry;
     mcomment = segscan_or_u64(mcomment, meol);
     
@@ -101,5 +103,5 @@ void simdc_remove_comments_avx512_vbmi2(const char* input, size_t len, char* out
     __m512i vuncomment = _mm512_maskz_compress_epi8(~mcomment, vin);
     _mm512_mask_storeu_epi8(output + olen, mleftover, vuncomment);
 
-    olen += __builtin_popcountl(~mcomment);
+    olen += __builtin_popcountl((~mcomment) & mleftover);
 }
