@@ -18,6 +18,9 @@ void simdc_remove_comments(const char* input, size_t len, char* output, size_t& 
             break;
         case '\n':
             commented = false;
+
+            // A line with an unclosed quote is an error: but error handling is beyond the scope of this project
+            quoted = false; 
             break;
         default:
             break;
