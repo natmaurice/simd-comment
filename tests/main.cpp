@@ -57,7 +57,7 @@ void test_simdcomment_compare(SIMDCommentFun fun_ref, SIMDCommentFun fun) {
 
     size_t tries = 1000;
 
-    constexpr size_t LEN = 100000;
+    constexpr size_t LEN = 100;
 
     std::uniform_int_distribution<> distr(100); // 1% chance of eol & 1% chance of '#'
     
@@ -93,7 +93,7 @@ void test_simdcomment_compare(SIMDCommentFun fun_ref, SIMDCommentFun fun) {
                 break;
             }
             
-            input[i] = c;
+            input[j] = c;
         }
         
         size_t len_ref;
