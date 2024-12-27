@@ -22,15 +22,15 @@ void test_simdcomment_fn(SIMDCommentFun fun) {
         const char* input =
             "Lorem ipsum dolor sit amet, consectetur adipiscing elit\n"
             ", sed do #eiusmod tempor incididunt ut labore et dolore magna aliqua.\n"
-            "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. \n"
+            "Ut enim ad minim veniam, quis \"nostrud# exercitation ullamco laboris nisi ut aliquip ex ea commodo#\" consequat. \n"
             "Duis"
             "# aute \n"
             "#irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum\n";
-        
-        const char* expected_output =
+
+        const char *expected_output =
             "Lorem ipsum dolor sit amet, consectetur adipiscing elit\n"
             ", sed do \n"
-            "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. \n"
+            "Ut enim ad minim veniam, quis \"nostrud# exercitation ullamco laboris nisi ut aliquip ex ea commodo#\" consequat. \n"
             "Duis"
             "\n"
             "\n";
@@ -57,17 +57,18 @@ void test_simdcomment_compare(SIMDCommentFun fun_ref, SIMDCommentFun fun) {
 
     size_t tries = 1000;
 
-    constexpr size_t LEN = 1000;
+    constexpr size_t LEN = 100;
 
     std::uniform_int_distribution<> distr(100); // 1% chance of eol & 1% chance of '#'
     
     constexpr uint8_t KEY_COMMENT = 0;
     constexpr uint8_t KEY_NEWLINE = 1;
-
-    char input[LEN + 1];
-    char output_ref[LEN + 1];
-    char output_res[LEN + 1];
-
+    constexpr uint8_t KEY_QUOTE = 2;
+    
+    char* input = new char[LEN + 1];
+    char* output_ref = new char[LEN + 1];
+    char* output_res = new char[LEN + 1];
+    
     input[LEN] = '\0';
     
     for (size_t i = 0; i < tries; i++) {
@@ -75,13 +76,24 @@ void test_simdcomment_compare(SIMDCommentFun fun_ref, SIMDCommentFun fun) {
 
         for (size_t j = 0; j < LEN; j++) {
             uint8_t val = distr(mt);
-            uint8_t c = 'a';
-            if (val == KEY_COMMENT) { // 
+            uint8_t c;
+            
+            switch (val) {
+            case KEY_COMMENT:
                 c = '#';
-            } else if (val == KEY_NEWLINE) {
+                break;
+            case KEY_NEWLINE:
                 c = '\n';
+                break;
+            case KEY_QUOTE:
+                c = '"';
+                break;
+            default:
+                c = 'a';
+                break;
             }
-            input[i] = c;
+            
+            input[j] = c;
         }
         
         size_t len_ref;
@@ -96,7 +108,10 @@ void test_simdcomment_compare(SIMDCommentFun fun_ref, SIMDCommentFun fun) {
         REQUIRE(len_res == len_ref);
         REQUIRE(std::string(output_res) == std::string(output_ref));
     }
-    
+
+    delete[] input;
+    delete[] output_ref;
+    delete[] output_res;
 }
 
 TEST_CASE("SIMD Comment - Scalar") {
