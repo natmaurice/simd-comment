@@ -94,7 +94,7 @@ void simdc_remove_comments_avx512_vbmi2(const char* input, size_t len, char* out
         
         // Register rotation
         mcarry = mcomment >> 63;
-        mquotecarry = mquote >> 63;
+        mquotecarry = (mquote >> 63) & (~mcarry);
     }    
 
     // Tail
