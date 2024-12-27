@@ -22,15 +22,15 @@ void test_simdcomment_fn(SIMDCommentFun fun) {
         const char* input =
             "Lorem ipsum dolor sit amet, consectetur adipiscing elit\n"
             ", sed do #eiusmod tempor incididunt ut labore et dolore magna aliqua.\n"
-            "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. \n"
+            "Ut enim ad minim veniam, quis \"nostrud# exercitation ullamco laboris nisi ut aliquip ex ea commodo#\" consequat. \n"
             "Duis"
             "# aute \n"
             "#irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum\n";
-        
-        const char* expected_output =
+
+        const char *expected_output =
             "Lorem ipsum dolor sit amet, consectetur adipiscing elit\n"
             ", sed do \n"
-            "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. \n"
+            "Ut enim ad minim veniam, quis \"nostrud# exercitation ullamco laboris nisi ut aliquip ex ea commodo#\" consequat. \n"
             "Duis"
             "\n"
             "\n";
