@@ -1,5 +1,7 @@
 #include <functional>
 #include <random>
+#include <bit>
+
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch_all.hpp>
 
@@ -102,21 +104,54 @@ void test_simdcomment_compare(SIMDCommentFun fun_ref, SIMDCommentFun fun) {
 extern uint64_t segscan_or_u64(uint64_t v, uint64_t mreset);
 extern uint64_t segscan_or_u64_v2(uint64_t v, uint64_t mreset);
 
-TEST_CASE("segscan_or_u64 - compare") {
+TEST_CASE("segscan_or_u64_v2") {
 
+    SECTION("v=0, mreset = 0") {
+        
+        uint64_t res = segscan_or_u64_v2(0, 0);
+        REQUIRE(res == 0);
+    }
+    SECTION("v = 1b, mreset = 0") {
 
-    constexpr size_t tries = 1000;
+        uint64_t res = segscan_or_u64_v2(1, 0);
+        REQUIRE(res == std::bit_cast<uint64_t>(-1LL));
+    }
+    SECTION("v = 1b, mreset = 1b") {
+        
+        uint64_t res = segscan_or_u64_v2(1, 1);
+        REQUIRE(res == std::bit_cast<uint64_t>(-1LL));
+    }
+    SECTION("v = 1b, mreset = 10b") {
+        
+        uint64_t res = segscan_or_u64_v2(0b1, 0b01);
+        REQUIRE(res == 0b01);
+    }
+    SECTION("v = 1001b, mreset = 0010b") {
+        
+        uint64_t res = segscan_or_u64_v2(0b1001, 0b10);
+        REQUIRE(res == 0b1111111111111111111111111111111111111111111111111111111111111001);
+    }
+    SECTION("v = 1111b, mreset = 0b100000") {
+        
+        uint64_t res = segscan_or_u64_v2(0b1111, 0b100000);
+        REQUIRE(res == 0b11111);
+    }
     
-    for (size_t i = 0; i < tries; i++) {
-        std::mt19937_64 mt(i);
+    SECTION("Random") {
 
-        uint64_t v = mt();
-        uint64_t mreset = mt();
+        constexpr size_t tries = 1000;
+    
+        for (size_t i = 0; i < tries; i++) {
+            std::mt19937_64 mt(i);
 
-        uint64_t out_ref = segscan_or_u64(v, mreset);
-        uint64_t out_res = segscan_or_u64_v2(v, mreset);
+            uint64_t v = mt();
+            uint64_t mreset = mt();
 
-        REQUIRE(out_res == out_ref);
+            uint64_t out_ref = segscan_or_u64(v, mreset);
+            uint64_t out_res = segscan_or_u64_v2(v, mreset);
+
+            REQUIRE(out_res == out_ref);
+        }
     }
 }
 #endif // SIMDCOMMENT_ENABLE_AVX512
