@@ -122,7 +122,7 @@ TEST_CASE("segscan_or_u64_v2") {
     }
     SECTION("v = 1b, mreset = 10b") {
         
-        uint64_t res = segscan_or_u64_v2(0b1, 0b01);
+        uint64_t res = segscan_or_u64_v2(0b1, 0b10);
         REQUIRE(res == 0b01);
     }
     SECTION("v = 1001b, mreset = 0010b") {
