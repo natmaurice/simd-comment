@@ -96,19 +96,42 @@ void test_simdcomment_compare(SIMDCommentFun fun_ref, SIMDCommentFun fun) {
         REQUIRE(len_res == len_ref);
         REQUIRE(std::string(output_res) == std::string(output_ref));
     }
-    
 }
+
+#ifdef SIMDCOMMENT_ENABLE_AVX512
+extern uint64_t segscan_or_u64(uint64_t v, uint64_t mreset);
+extern uint64_t segscan_or_u64_v2(uint64_t v, uint64_t mreset);
+
+TEST_CASE("segscan_or_u64 - compare") {
+
+
+    constexpr size_t tries = 1000;
+    
+    for (size_t i = 0; i < tries; i++) {
+        std::mt19937_64 mt(i);
+
+        uint64_t v = mt();
+        uint64_t mreset = mt();
+
+        uint64_t out_ref = segscan_or_u64(v, mreset);
+        uint64_t out_res = segscan_or_u64_v2(v, mreset);
+
+        REQUIRE(out_res == out_ref);
+    }
+}
+#endif // SIMDCOMMENT_ENABLE_AVX512
+
 
 TEST_CASE("SIMD Comment - Scalar") {
     test_simdcomment_fn(simdc_remove_comments);
 }
 
-#ifdef __AVX512F__ 
+#ifdef SIMDCOMMENT_ENABLE_AVX512
 TEST_CASE("SIMD Comment - AVX512") {
     test_simdcomment_fn(simdc_remove_comments_avx512_vbmi2);
 
     test_simdcomment_compare(simdc_remove_comments, simdc_remove_comments_avx512_vbmi2);
 }
-#endif // __AVX512F__
+#endif // SIMDCOMMENT_ENABLE_AVX512
 
 
