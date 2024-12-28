@@ -44,7 +44,7 @@ uint64_t segscan_or_u64(uint64_t v, uint64_t mreset) {
 uint64_t segscan_or_u64_v2(uint64_t v, uint64_t mreset) {
     //return ~((v + (~mreset)) & (~(v & (~mreset))));
     uint64_t s = v = (mreset | v);
-    return ((mreset) & (~v) & (~s)) | ((~v) | s);
+    return ~(((mreset) & (~v) & (~s)) | ((~v) | s));
 }
 
 
