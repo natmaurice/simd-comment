@@ -117,3 +117,68 @@ void simdc_remove_comments_avx512_vbmi2(const char* input, size_t len, char* out
 
     olen += __builtin_popcountl((~mcomment) & mleftover);
 }
+
+void simdc_remove_comments_avx512_vbmi2_v2(const char* input, size_t len, char* output, size_t& olen) {
+
+    constexpr size_t CARD_SIMD = 64; // Read/Write 64 elements per SIMD
+
+
+    __m512i vcomment = _mm512_set1_epi8('#');
+    __m512i veol = _mm512_set1_epi8('\n');
+
+    uint64_t mcarry = 0;
+    olen = 0;
+    
+    // Main loop
+    size_t i = 0;
+    for (i = 0; i + CARD_SIMD < len; i += 64) {
+        
+        __m512i vin = _mm512_loadu_si512(input + i);
+
+        uint64_t mcomment = _mm512_cmpeq_epi8_mask(vin, vcomment);
+        uint64_t meol = _mm512_cmpeq_epi8_mask(vin, veol);
+
+        // Perform segmented scan on scalar elements
+        // A SIMD implementation is possible, but would have to deal with
+        // inter-lane operation and port 5
+        mcarry &= (~meol); // mask carry if first bit is eol 
+        mcomment |= mcarry;
+        mcomment = segscan_or_u64_v3(mcomment, meol);
+        
+        // Compress store
+        // Perform compress and store separately due to Zen 4 performance issue
+        // On Intel and Zen 5, the following instructions can be merged into a single
+        // _mm512_maskz_compress_storeu
+        __m512i vuncomment = _mm512_maskz_compress_epi8(~mcomment, vin);
+        _mm512_storeu_epi8(output + olen, vuncomment);
+
+        olen += __builtin_popcountl(~mcomment);
+        
+        // Register rotation
+        mcarry = mcomment >> 63;
+    }    
+
+    // Tail
+    __mmask64 mleftover = 0xffffffffffffffff >> (64 - len - i);
+
+    __m512i vin = _mm512_maskz_loadu_epi8(mleftover, input + i);
+
+    uint64_t mcomment = _mm512_cmpeq_epi8_mask(vin, vcomment);
+    uint64_t meol = _mm512_cmpeq_epi8_mask(vin, veol);
+
+    // Perform segmented scan on scalar elements
+    // A SIMD implementation is possible, but would have to deal with
+    // inter-lane operation and port 5
+    mcarry &= (~meol); // mask carry if first bit is eol 
+    mcomment |= mcarry;
+    mcomment = segscan_or_u64(mcomment, meol);
+    
+    // Compress store
+    // Perform compress and store separately due to Zen 4 performance issue
+    // On Intel and Zen 5, the following instructions can be merged into a single
+    // _mm512_maskz_compress_storeu
+    __m512i vuncomment = _mm512_maskz_compress_epi8(~mcomment, vin);
+    _mm512_mask_storeu_epi8(output + olen, mleftover, vuncomment);
+
+    olen += __builtin_popcountl((~mcomment) & mleftover);
+}

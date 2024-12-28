@@ -178,6 +178,13 @@ TEST_CASE("SIMD Comment - AVX512") {
 
     test_simdcomment_compare(simdc_remove_comments, simdc_remove_comments_avx512_vbmi2);
 }
+
+TEST_CASE("SIMD Comment - AVX512 v3") {
+    test_simdcomment_fn(simdc_remove_comments_avx512_vbmi2);
+
+    test_simdcomment_compare(simdc_remove_comments, simdc_remove_comments_avx512_vbmi2);
+}
+
 #endif // SIMDCOMMENT_ENABLE_AVX512
 
 
