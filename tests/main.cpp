@@ -1,6 +1,5 @@
 #include <functional>
 #include <random>
-#include <bit>
 
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch_all.hpp>
@@ -114,12 +113,12 @@ TEST_CASE("segscan_or_u64_v2") {
     SECTION("v = 1b, mreset = 0") {
 
         uint64_t res = segscan_or_u64_v2(1, 0);
-        REQUIRE(res == std::bit_cast<uint64_t>(-1LL));
+        REQUIRE(res == 0b1111111111111111111111111111111111111111111111111111111111111111);
     }
     SECTION("v = 1b, mreset = 1b") {
         
         uint64_t res = segscan_or_u64_v2(1, 1);
-        REQUIRE(res == std::bit_cast<uint64_t>(-1LL));
+        REQUIRE(res == 0b1111111111111111111111111111111111111111111111111111111111111111);
     }
     SECTION("v = 1b, mreset = 10b") {
         
